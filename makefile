@@ -1,6 +1,6 @@
 CC = gcc
 FLAGS = -Wall -g
-
+    
 all: clean myShell
 	./myShell
 

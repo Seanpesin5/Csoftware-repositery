@@ -1,39 +1,49 @@
 #include "myShell.h"
 #include "myFunction.h"
-
-int main()
-{
-
+int main() {
     welcome();
-    while (1)
-    {
+    while (1) {
         int piping = 0;
         getLocation();
         char *input = getInputFromUser();
+
         if (strcmp(input, "exit") == 0 || strncmp(input, "exit ", 5) == 0)
             logout(input);
+
         char **arguments = splitArgument(input);
-        if (strcmp(input, "echo") == 0)
-            echo(arguments);
-        else if (strcmp(input, "cd") == 0)
-            cd(arguments);
-        else if (strcmp(input, "cp") == 0)
-            cp(arguments);
-        else if (strcmp(input, "delete") == 0)
-            delete (arguments);
-        else if (strcmp(input, "mv") == 0)
-            move(arguments);
-        else if (piping)
-        {
+        int isAppendCommand = 0, isOverwriteCommand = 0;
+        for (int i = 0; arguments[i] != NULL; i++) {
+            if (strcmp(arguments[i], ">>") == 0) {
+                isAppendCommand = 1;
+                break;
+            } else if (strcmp(arguments[i], ">") == 0) {
+                isOverwriteCommand = 1;
+                break;
+            }
+        }
+        if (isAppendCommand) {
+            echoppend(arguments); // Handle the append operation
+        } else if (isOverwriteCommand) {
+            echorite(arguments); // Handle overwrite operation
+        } else if (strcmp(arguments[0], "echo") == 0) {
+            echo(arguments); // Handle the echo to terminal operation
+        } else if (strcmp(arguments[0], "cd") == 0) {
+            cd(arguments); // Change directory
+        } else if (strcmp(arguments[0], "cp") == 0) {
+            cp(arguments); // Copy files
+        } else if (strcmp(arguments[0], "delete") == 0) {
+            delete(arguments); // Delete files
+        } else if (strcmp(arguments[0], "mv") == 0) {
+            move(arguments); // Move files
+        } else if (piping) {
             arguments[piping] = NULL;
             mypipe(arguments, arguments + piping + 1);
             wait(NULL);
-        }
-        else
-        {
+        } else {
             systemCall(arguments);
             wait(NULL);
         }
+
         free(arguments);
         free(input);
     }

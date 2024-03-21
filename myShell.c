@@ -35,6 +35,10 @@ int main() {
             delete(arguments); // Delete files
         } else if (strcmp(arguments[0], "mv") == 0) {
             move(arguments); // Move files
+             } else if (strcmp(arguments[0], "wc") == 0) {
+            wordCount(arguments); 
+        }else if (strcmp(arguments[0], "read") == 0){
+                readd(arguments);
         } else if (piping) {
             arguments[piping] = NULL;
             mypipe(arguments, arguments + piping + 1);

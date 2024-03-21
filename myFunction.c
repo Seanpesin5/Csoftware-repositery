@@ -193,7 +193,7 @@ void cd(char **arg)
     }
     else
     {
-        // Non-quoted but possibly space-containing path
+        // Non quoted but  space-containing path
         strncpy(path, arg[1], sizeof(path) - 1);
         for (int i = 2; arg[i] != NULL; i++)
         {
@@ -238,6 +238,8 @@ void cp(char **arguments)
 }
 
 void delete(char **path)
+//the function goes to the path of course deletes "" if exists and by unlink deletes the file
+//if something goes wrong it uses error to invoke you
 {
     if (path == NULL || path[1] == NULL)
     {
@@ -277,6 +279,13 @@ void systemCall(char **arg)
 
 
 void echorite(char **args) {
+   //it overwrites to a path or creates one if it cant find it
+   // using some kind of buufres/storage i cut the ""
+   //using fprint i write to the file
+   //using strcat i cut the previous content
+   //the write to the file and close it
+   //added errors handling   
+   
     char textToWrite[2048] = {0};
     char filePath[2048] = {0};
 
@@ -296,7 +305,7 @@ void echorite(char **args) {
             }
             break;
         } else {
-           
+    //here i empty the file       
             if (i > 1) strcat(textToWrite, " "); 
             strcat(textToWrite, args[i]);
         }
@@ -305,6 +314,7 @@ void echorite(char **args) {
         fprintf(stderr, "Redirection operator '>' not found.\n");
         return;
     }
+    // here i write to the file
     FILE *file = fopen(filePath, "w");
     if (!file) {
         perror("Error opening file");
@@ -317,6 +327,8 @@ void echorite(char **args) {
 }
 
 void echoppend(char **args) {
+    // basiclly the same as echorite it just doenst overwrites the file just appends to it
+    
     // Variables to hold the concatenated text and file path
     char textToAppend[2048] = {0};
     char filePath[2048] = {0};
@@ -353,8 +365,12 @@ void echoppend(char **args) {
 
 void move(char **args)
 {
+    //cutting the "" using the same tactic of kind of storage
+    //finding the source arg 2 and dest arg 3+4 depends on the spaces
+    //arg [0] = mv
     char srcPath[2048] = {0};
     char destPath[2048] = {0};
+   //cutting spaces
     strcat(srcPath, args[1]);
     if (args[2] != NULL)
     {
@@ -363,9 +379,11 @@ void move(char **args)
     }
     if (args[3] != NULL)
     {
+        //cutting spaces
         strcat(destPath, args[3]);
         if (args[4] != NULL)
         {
+            //cutting spaces
             strcat(destPath, " ");
             strcat(destPath, args[4]);
         }
@@ -380,6 +398,84 @@ void move(char **args)
         perror("Error moving file");
     }
 }
+void readd(char **args) {
+    // the easiest function just handling the spaces
+    // open file using fopen
+    //getting file conten using fgets
+    //the content is loaded into a buffer and then printed
+    if (args[1] == NULL) {
+        fprintf(stderr, "Usage: read <path>\n");
+        return;
+    }
+    char filePath[2048] = {0};
+    for (int i = 1; args[i] != NULL; ++i) {
+        if (i > 1) strcat(filePath, " ");
+        strcat(filePath, args[i]);
+    }
+    FILE *file = fopen(filePath, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        printf("%s", buffer);
+    }
+    fclose(file);
+}
+void wordCount(char **args) {
+    //finding the symbol -l||-w
+    //again cutting spaces
+    //going through the file using fopen
+    
+    // Check for at least two arguments: the option and part of the file path
+    if (args[1] == NULL || args[2] == NULL) {
+        fprintf(stderr, "Usage: wordCount -l|-w <path>\n");
+        return;
+    }
+
+    // Concatenate all arguments after the option to form the file path
+    char filePath[2048] = {0};
+    for (int i = 2; args[i] != NULL; ++i) {
+        if (i > 2) strcat(filePath, " "); // Add spaces back in
+        strcat(filePath, args[i]);
+    }
+
+    // Open the file
+    FILE *file = fopen(filePath, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+//declaring lines and words if file exist automaticlly at least one line
+    int lines = 1, words = 0;
+    char buffer[2048];
+    int inWord = 0;
+   
+   //while has content basiclly while counting words and lines using backslash n
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        for (int i = 0; buffer[i]; i++) {
+            if (buffer[i] == '\n') lines++;
+            if (isspace(buffer[i])) {
+                inWord = 0;
+            } else if (!inWord) {
+                inWord = 1;
+                words++;
+                //adjusting via ++
+            }
+        }
+    }
+    fclose(file);
+// checking for the sign
+    if (strcmp(args[1], "-l") == 0) {
+        printf("Lines: %d\n", lines);
+    } else if (strcmp(args[1], "-w") == 0) {
+        printf("Words: %d\n", words);
+    } else {
+        fprintf(stderr, "Invalid option. Use -l for lines or -w for words.\n");
+    }
+}
+
 void mypipe(char **argv1, char **argv2)
 {
     int fildes[2];
